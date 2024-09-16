@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  csv_manipulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.csv_manipulator
+    volumes:
+      - ./data:/app/data
+      - ./app:/app
+    depends_on:
+      - postgres

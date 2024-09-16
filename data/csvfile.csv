@@ -1,0 +1,5 @@
+name,age,salary,hire_date,is_manager
+John Doe,30,55000.50,2020-01-15,true
+Jane Smith,28,48000.75,2021-03-01,false
+Bob Johnson,35,62000.25,2019-11-30,true
+Alice Brown,26,45000.00,2022-06-01,false
