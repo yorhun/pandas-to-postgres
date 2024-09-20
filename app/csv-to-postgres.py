@@ -20,26 +20,50 @@ def create_table_query(df, table_name):
     columns = []
     for column, dtype in df.dtypes.items():
         pg_type = get_postgres_type(dtype)
+        # try to convert the column to datetime using format 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD'
+        if pg_type == 'TEXT':
+            try:
+                df[column] = pd.to_datetime(df[column], format='%Y-%m-%d %H:%M:%S')
+                pg_type = 'TIMESTAMP'
+            except:
+                try:
+                    df[column] = pd.to_datetime(df[column], format='%Y-%m-%d')
+                    pg_type = 'DATE'
+                except:
+                    pass
+        
         columns.append(f'"{column}" {pg_type}')
     
     columns_string = ', '.join(columns)
     return f"CREATE TABLE IF NOT EXISTS {table_name} (id SERIAL PRIMARY KEY, {columns_string})"
 
-def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_size=50000):
+def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_size=100000):
     # Create a database connection
     engine = create_engine(db_connection_string)
     conn = engine.raw_connection()
     cursor = conn.cursor()
 
     # Read the first chunk to get the schema
-    first_chunk = next(pd.read_csv(csv_file_path, chunksize=1))
-    
+    first_chunk = next(
+        pd.read_csv(
+            csv_file_path,
+            chunksize=1,
+            # specify any column that should be read as a specific data type! 
+            dtype={
+                'fare_amount': 'float',
+                'tolls_amount': 'float',
+                'congestion_surcharge': 'float'
+                },
+            ),
+            )
+
     # Create the table based on the DataFrame schema
     create_table_sql = create_table_query(first_chunk, table_name)
     cursor.execute(create_table_sql)
     conn.commit()
 
     # Read and insert the CSV in chunks
+
     for chunk in pd.read_csv(csv_file_path, chunksize=chunk_size):
         # Replace NaN values with None for proper SQL NULL handling
         chunk = chunk.replace({np.nan: None})
@@ -60,8 +84,8 @@ def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_
     print(f"CSV file loaded into {table_name} successfully!")
 
 if __name__ == "__main__":
-    csv_file_path = "/app/data/csvfile.csv"
-    table_name = "your_table_name"
+    csv_file_path = "/data/yellow_tripdata_2019-01.csv"
+    table_name = "table_name"
     db_connection_string = "postgresql://myuser:mypassword@postgres:5432/mydb"
 
     load_csv_to_postgres(csv_file_path, table_name, db_connection_string)
