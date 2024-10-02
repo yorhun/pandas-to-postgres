@@ -10,7 +10,8 @@ def load_config(file_path):
     with open(file_path, 'r') as config_file:
         config = json.load(config_file)
     return config
-
+    
+# tries to extract and match pandas dtypes to postgres
 def get_postgres_type(dtype):
     if pd.api.types.is_integer_dtype(dtype):
         return 'INTEGER'
@@ -55,11 +56,11 @@ def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_
         pd.read_csv(
             csv_file_path,
             chunksize=1,
-            # specify any column that should be read as a specific data type! 
+            # specify any column that should be read as a specific data type from the csv 
             dtype={
-                'fare_amount': 'float',
-                'tolls_amount': 'float',
-                'congestion_surcharge': 'float'
+                'float-column-1': 'float',
+                'float-column-2': 'float',
+                'str-column-1': 'str'
                 },
             ),
             )
