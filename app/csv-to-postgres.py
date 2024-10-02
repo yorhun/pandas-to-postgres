@@ -11,7 +11,7 @@ def load_config(file_path):
         config = json.load(config_file)
     return config
     
-# tries to extract and match pandas dtypes to postgres
+# tries to extract and match dtypes of pandas to postgres
 def get_postgres_type(dtype):
     if pd.api.types.is_integer_dtype(dtype):
         return 'INTEGER'
@@ -56,7 +56,7 @@ def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_
         pd.read_csv(
             csv_file_path,
             chunksize=1,
-            # specify any column that should be read as a specific data type from the csv 
+            # specify any column that should be read as a particular data type from the csv 
             dtype={
                 'float-column-1': 'float',
                 'float-column-2': 'float',
@@ -98,8 +98,9 @@ if __name__ == "__main__":
         username = config['username']
         password = config['password']
         port = config['port']
+        db = config['db']
         csv_file_path = "/data/csv_file_name.csv"
         table_name = "table_name"
-        db_connection_string = f"postgresql://{username}:{password}@postgres:{port}/mydb"
+        db_connection_string = f"postgresql://{username}:{password}@postgres:{port}/{db}"
 
         load_csv_to_postgres(csv_file_path, table_name, db_connection_string)
