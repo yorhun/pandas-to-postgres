@@ -3,6 +3,13 @@ import psycopg2
 from sqlalchemy import create_engine
 from io import StringIO
 import numpy as np
+import json
+
+# Function to load the configuration from JSON file
+def load_config(file_path):
+    with open(file_path, 'r') as config_file:
+        config = json.load(config_file)
+    return config
 
 def get_postgres_type(dtype):
     if pd.api.types.is_integer_dtype(dtype):
@@ -84,8 +91,14 @@ def load_csv_to_postgres(csv_file_path, table_name, db_connection_string, chunk_
     print(f"CSV file loaded into {table_name} successfully!")
 
 if __name__ == "__main__":
-    csv_file_path = "/data/yellow_tripdata_2019-01.csv"
-    table_name = "table_name"
-    db_connection_string = "postgresql://myuser:mypassword@postgres:5432/mydb"
 
-    load_csv_to_postgres(csv_file_path, table_name, db_connection_string)
+    config = load_config('config.json')
+    if config:
+        username = config['username']
+        password = config['password']
+        port = config['port']
+        csv_file_path = "/data/csv_file_name.csv"
+        table_name = "table_name"
+        db_connection_string = f"postgresql://{username}:{password}@postgres:{port}/mydb"
+
+        load_csv_to_postgres(csv_file_path, table_name, db_connection_string)
